@@ -10,5 +10,6 @@
 @interface MyCharacter : MGWUCharacter
 
 -(void)jump;
+-(void)test;
 
 @end
