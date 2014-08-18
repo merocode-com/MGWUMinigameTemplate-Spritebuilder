@@ -18,6 +18,7 @@
     
     BOOL _gameOver;
     int _score;
+    float _timeAlive;
 }
 
 -(id)init {
@@ -27,6 +28,7 @@
         
         _gameOver = NO;
         _score = 0;
+        _timeAlive = 0.0f;
         _rocksArray = [NSMutableArray array];
         _statuesArray = [NSMutableArray array];
     }
@@ -45,8 +47,8 @@
     [super onEnter];
     // Create anything you'd like to draw here
     
-    [self schedule:@selector(spawnStatue) interval:2.f];       // Spawn a new statue every .35 seconds
-    [self schedule:@selector(spawnRock) interval:5.f];       // Spawn a new rock every 5 seconds
+    [self schedule:@selector(spawnStatue) interval:1.5f];       // Spawn a new statue every 1.5 seconds
+    [self schedule:@selector(spawnRock) interval:4.f];       // Spawn a new rock every 4 seconds
     [self schedule:@selector(updateScoreLabel) interval:0.1f];  // Update the score label every 0.1 seconds
 }
 
@@ -70,9 +72,9 @@
     // Spawn statue on the top of the screen, at a random width
     statue.position = ccp(self.contentSizeInPoints.width * CCRANDOM_0_1(), self.contentSizeInPoints.height);
     
-    // Statues have a random scale between 50% and 80%
-    // Here clampf makes sure the random value is between 0.5f and 0.8f
-    statue.scale = clampf(CCRANDOM_0_1(), 0.5f, 0.8f);
+    // Statues have a random scale between 50% and 70%
+    // Here clampf makes sure the random value is between 0.5f and 0.7f
+    statue.scale = clampf(CCRANDOM_0_1(), 0.5f, 0.7f);
     
     // Add the statue to the physics node
     [_physicsNode addChild:statue];
@@ -92,9 +94,9 @@
     // Spawn rocks on the top of the screen, at a random width
     rock.position = ccp(self.contentSizeInPoints.width * CCRANDOM_0_1(), self.contentSizeInPoints.height);
     
-    // Rocks have a random scale between 50% and 100%
-    // Here clampf makes sure the random value is between 0.5f and 1.0f
-    rock.scale = clampf(CCRANDOM_0_1(), 0.5f, 1.0f);
+    // Rocks have a random scale between 70% and 150%
+    // Here clampf makes sure the random value is between 0.7f and 1.5f
+    rock.scale = clampf(CCRANDOM_0_1(), 0.7f, 1.5f);
     
     // Add the rock to the physics node
     [_physicsNode addChild:rock];
@@ -151,10 +153,17 @@
     // n.b. Lag and other factors may cause it to be called more or less frequently on different devices or sessions
     // delta will tell you how much time has passed since the last cycle (in seconds)
     
-    if (_gameOver)
+    _timeAlive += delta;
+    
+    if (_gameOver || _timeAlive >= 60)
     {
         [self endMinigame];
     }
+}
+
+-(void)flagToRemoveMinigame
+{
+    _gameOver = YES;
 }
 
 -(void)endMinigame {
@@ -173,10 +182,14 @@
                                             }
                                             key:statue];
     
-    _score += 10;
+    if (_score < 100)
+    {
+        _score += 10;
+    }
     if (_score == 100)
     {
-        _gameOver = YES;
+        [self.hero jump];
+        [self performSelector:@selector(flagToRemoveMinigame) withObject:nil afterDelay:3];
     }
 }
 
@@ -188,7 +201,7 @@
                                             key:rock];
     
     //  If we hit a rock, it's game over!
-    _gameOver = YES;
+    [self performSelector:@selector(flagToRemoveMinigame) withObject:nil afterDelay:1];
 }
 
 -(void)ccPhysicsCollisionPostSolve:(CCPhysicsCollisionPair *)pair groundCollision:(CCNode *)ground RockCollision:(CCNode *)rock
