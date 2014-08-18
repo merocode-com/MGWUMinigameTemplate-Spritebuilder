@@ -23,7 +23,7 @@
 -(id)init {
     if ((self = [super init])) {
         // Initialize any arrays, dictionaries, etc in here
-        self.instructions = @"Save as many pharaohs as possible and avoid crashing by big rocks";
+        self.instructions = @"Save as many pharaohs as possible \n\n Game ends if : \n  Crashing by big rocks \n OR \n Collecting 100 points";
         
         _gameOver = NO;
         _score = 0;
@@ -110,7 +110,17 @@
 {
     if (particles)
     {
+        // load particle effect
+        CCParticleSystem *crash = (CCParticleSystem *)[CCBReader load:@"amiraelmansyStatueCrash"];
         
+        // make the particle effect clean itself up, once it is completed
+        crash.autoRemoveOnFinish = TRUE;
+        
+        // place the particle effect on the statue position
+        crash.position = statue.position;
+        
+        // add the particle effect to the same node the statue is on
+        [statue.parent addChild:crash];
     }
     
     [statue removeFromParent];
@@ -120,7 +130,17 @@
 {
     if (particles)
     {
+        // load particle effect
+        CCParticleSystem *crash = (CCParticleSystem *)[CCBReader load:@"amiraelmansyRockCrash"];
         
+        // make the particle effect clean itself up, once it is completed
+        crash.autoRemoveOnFinish = TRUE;
+        
+        // place the particle effect on the rock position
+        crash.position = rock.position;
+        
+        // add the particle effect to the same node the rock is on
+        [rock.parent addChild:crash];
     }
     
     [rock removeFromParent];
@@ -152,11 +172,9 @@
                                                 [self removeStatue:(CCSprite *)statue withParticles:NO];
                                             }
                                             key:statue];
-    if (_score < 100)
-    {
-        _score += 10;
-    }
-    else
+    
+    _score += 10;
+    if (_score == 100)
     {
         _gameOver = YES;
     }
